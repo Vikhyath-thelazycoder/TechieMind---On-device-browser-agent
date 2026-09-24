@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TechyMind Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="settings.css">
+  <link rel="icon" type="image/png" href="../../assets/icons/icon32.png">
+</head>
+<body>
+  <div class="settings-app">
+    <!-- Sidebar Navigation -->
+    <aside class="settings-sidebar">
+      <div class="brand">
+        <img src="../../assets/icons/icon32.png" alt="TechyMind" class="brand-logo" />
+        <div class="brand-text">
+          <span class="brand-name">TechyMind</span>
+          <span class="brand-sub">Settings</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="ai">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="14" height="14" rx="3"/>
+            <path d="M7 1v2M13 1v2M7 17v2M13 17v2M1 7h2M1 13h2M17 7h2M17 13h2"/>
+          </svg>
+          AI &amp; Models
+        </button>
+
+        <button class="nav-item" data-tab="privacy">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M10 2L3 5v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V5l-7-3z"/>
+            <path d="M7.5 10l2 2 3.5-4"/>
+          </svg>
+          Privacy &amp; Vision
+        </button>
+
+        <button class="nav-item" data-tab="research">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="9" cy="9" r="6"/>
+            <path d="M13.5 13.5L18 18"/>
+          </svg>
+          Deep Research
+        </button>
+
+        <button class="nav-item" data-tab="profile">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="10" cy="7" r="3.5"/>
+            <path d="M3.5 17c1-3.5 3.5-5 6.5-5s5.5 1.5 6.5 5"/>
+          </svg>
+          Profile
+        </button>
+
+        <button class="nav-item" data-tab="skills">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M7 3l-4 4 4 4M13 3l4 4-4 4M11 2l-2 16"/>
+          </svg>
+          Skills
+        </button>
+
+        <button class="nav-item" data-tab="export">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 14v2a2 2 0 002 2h8a2 2 0 002-2v-2M10 3v10M6 7l4-4 4 4"/>
+          </svg>
+          Export
+        </button>
+
+        <button class="nav-item" data-tab="diagnostics">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 10h3l2-4 4 8 2-4h3"/>
+          </svg>
+          Diagnostics
+        </button>
+
+        <button class="nav-item" data-tab="about">
+          <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="10" cy="10" r="8"/>
+            <path d="M10 9v5M10 6h.01"/>
+          </svg>
+          About
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="save-status" id="sidebarSaveStatus">Settings auto-saved</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="settings-content">
+
+      <!-- AI & MODELS -->
+      <section class="tab-pane active" id="pane-ai">
+        <header class="section-header">
+          <h2>AI &amp; Models</h2>
+          <p>Configure local on-device inference via Ollama or connect an OpenAI-compatible gateway.</p>
+        </header>
+
+        <!-- Sub Tabs -->
+        <div class="sub-nav">
+          <button class="sub-nav-btn active" data-sub="ollama">Local Model (Ollama)</button>
+          <button class="sub-nav-btn" data-sub="compatible">Compatible (OpenAI Compatible)</button>
+        </div>
+
+        <!-- Ollama Section -->
+        <div class="sub-pane active" id="sub-ollama">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon lock">🔒</div>
+              <div>
+                <h3>Ollama Server Configuration</h3>
+                <p>Run models completely on your machine. Data never leaves your device.</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="ollamaBaseUrl">Ollama Server URL</label>
+              <div class="input-with-action">
+                <input type="text" id="ollamaBaseUrl" placeholder="http://127.0.0.1:11434" />
+                <button class="btn btn-secondary" id="testOllamaBtn">Test Connection</button>
+              </div>
+              <div class="status-indicator" id="ollamaStatusIndicator">
+                <span class="dot"></span>
+                <span class="status-msg" id="ollamaStatusMsg">Checking connection…</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="ollamaTextModel">Selected Model</label>
+              <div class="select-row">
+                <select id="ollamaModelSelect">
+                  <option value="qwen2.5:7b">qwen2.5:7b (Recommended)</option>
+                  <option value="gemma3:12b">gemma3:12b (Multimodal Vision)</option>
+                  <option value="qwen2.5vl:7b">qwen2.5vl:7b (Vision)</option>
+                </select>
+                <button class="btn btn-secondary" id="refreshOllamaModelsBtn">Refresh Models</button>
+              </div>
+              <p class="field-hint">You can pull new models with <code>ollama pull &lt;model&gt;</code> in your terminal.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compatible Section -->
+        <div class="sub-pane" id="sub-compatible">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">⚡</div>
+              <div>
+                <h3>OpenAI-Compatible Gateway</h3>
+                <p>Connect OpenAI, self-hosted vLLM, LiteLLM, or compatible endpoints.</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="compatibleBaseUrl">Endpoint URL</label>
+              <input type="text" id="compatibleBaseUrl" placeholder="https://api.openai.com/v1" />
+            </div>
+
+            <div class="form-group">
+              <label for="compatibleApiKey">API Key</label>
+              <input type="password" id="compatibleApiKey" placeholder="sk-..." />
+            </div>
+
+            <div class="form-group">
+              <label for="compatibleModel">Model Name</label>
+              <input type="text" id="compatibleModel" placeholder="gpt-4o" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRIVACY & VISION -->
+      <section class="tab-pane" id="pane-privacy">
+        <header class="section-header">
+          <h2>Privacy &amp; Vision</h2>
+          <p>Inspect local client-side sanitization, PII masking, and fail-closed privacy bounds.</p>
+        </header>
+
+        <div class="sub-nav">
+          <button class="sub-nav-btn active" data-sub="wall">Privacy Wall</button>
+          <button class="sub-nav-btn" data-sub="inspector">Live Inspector</button>
+        </div>
+
+        <div class="sub-pane active" id="sub-wall">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon lock">🛡️</div>
+              <div>
+                <h3>Privacy Wall Safeguards</h3>
+                <p>All sensitive information is redacted locally in the browser before model inference.</p>
+              </div>
+            </div>
+
+            <div class="toggle-list">
+              <label class="toggle-item">
+                <input type="checkbox" id="privacyEnabledToggle" checked />
+                <div class="toggle-text">
+                  <strong>Enable Privacy Boundary</strong>
+                  <span>Enforces client-side sanitization. Fails closed (blank frame) if sanitization errors occur.</span>
+                </div>
+              </label>
+
+              <label class="toggle-item">
+                <input type="checkbox" id="blurFacesToggle" checked />
+                <div class="toggle-text">
+                  <strong>Local Face Blurring</strong>
+                  <span>Detects and masks human faces in webpage screenshots using on-device vision models.</span>
+                </div>
+              </label>
+
+              <label class="toggle-item">
+                <input type="checkbox" id="redactDomPiiToggle" checked />
+                <div class="toggle-text">
+                  <strong>DOM PII Redaction</strong>
+                  <span>Masks emails, phone numbers, and credentials before constructing DOM payloads.</span>
+                </div>
+              </label>
+
+              <label class="toggle-item">
+                <input type="checkbox" id="indianPiiToggle" checked />
+                <div class="toggle-text">
+                  <strong>Indian Identity &amp; Financial Redaction</strong>
+                  <span>Masks Aadhaar, PAN, voter ID, passport, driving license, IFSC, UPI, and GSTIN tokens.</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Calculated Protection Scoreboard</h3>
+            <p>Calculated live from actual on-device filter checks and browser isolation boundaries.</p>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <span class="metric-title">Privacy Protection</span>
+                <span class="metric-value" id="scorePrivacy">Active</span>
+                <span class="metric-sub">Client-side fail-closed</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-title">Sensitive Data Detection</span>
+                <span class="metric-value" id="scorePii">14 Filters</span>
+                <span class="metric-sub">PII + Indian ID Patterns</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-title">Browser Isolation</span>
+                <span class="metric-value">Tab Groups</span>
+                <span class="metric-sub">Isolated task sandbox</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-title">Network Exposure</span>
+                <span class="metric-value">Sanitized</span>
+                <span class="metric-sub">No raw DOM/pixel leaks</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub-pane" id="sub-inspector">
+          <div class="card">
+            <h3>Live Inspector</h3>
+            <p>Real-time redaction manifest of elements and coordinates sanitized during the active run.</p>
+            <div class="inspector-box" id="inspectorBox">
+              <div class="empty-hint">No active capture running. Run a task to inspect live redacted regions.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DEEP RESEARCH -->
+      <section class="tab-pane" id="pane-research">
+        <header class="section-header">
+          <h2>Deep Research</h2>
+          <p>Configure search providers and crawling parameters for multi-source research tasks.</p>
+        </header>
+
+        <div class="card">
+          <h3>Search Providers Configuration</h3>
+          <p>Supply your API credentials for web search and retrieval.</p>
+
+          <div class="form-group">
+            <label for="braveKey">Brave Search API Key</label>
+            <input type="password" id="braveKey" placeholder="Enter Brave Search API key..." />
+          </div>
+
+          <div class="form-group">
+            <label for="langSearchKey">LangSearch API Key</label>
+            <input type="password" id="langSearchKey" placeholder="Enter LangSearch API key..." />
+          </div>
+
+          <div class="form-group">
+            <label for="serperKey">Serper API Key</label>
+            <input type="password" id="serperKey" placeholder="Enter Serper API key..." />
+          </div>
+
+          <div class="form-group">
+            <label for="drMaxSites">Max Sites to Crawl per Query</label>
+            <input type="number" id="drMaxSites" min="1" max="15" value="6" />
+          </div>
+        </div>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="tab-pane" id="pane-profile">
+        <header class="section-header">
+          <h2>User Profile</h2>
+          <p>Saved local personal details used for form filling and repeated browser tasks.</p>
+        </header>
+
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="profName">Full Name</label>
+              <input type="text" id="profName" placeholder="Your name..." />
+            </div>
+            <div class="form-group">
+              <label for="profEmail">Email Address</label>
+              <input type="email" id="profEmail" placeholder="your.email@example.com" />
+            </div>
+            <div class="form-group">
+              <label for="profPhone">Phone Number</label>
+              <input type="tel" id="profPhone" placeholder="+1..." />
+            </div>
+            <div class="form-group">
+              <label for="profCompany">Company / Organization</label>
+              <input type="text" id="profCompany" placeholder="Company..." />
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:16px">
+            <label for="profAddress">Default Address</label>
+            <textarea id="profAddress" rows="3" placeholder="Address..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- SKILLS -->
+      <section class="tab-pane" id="pane-skills">
+        <header class="section-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+          <div>
+            <h2>Skills &amp; Injected Instructions</h2>
+            <p>Inspect, add, and customize the exact prompt instructions and verification checklists injected into TechyMind for specialized tasks.</p>
+          </div>
+          <button class="btn btn-primary" id="settingsNewSkillBtn" style="flex-shrink:0;">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>
+            <span>+ New Skill</span>
+          </button>
+        </header>
+
+        <div class="skills-grid" id="skillsGrid">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Skill Details & Editor Modal in Settings -->
+        <div class="settings-modal" id="settingsSkillModal" style="display:none;">
+          <div class="settings-modal-backdrop" id="settingsSkillModalBackdrop"></div>
+          <div class="settings-modal-card">
+            <div class="settings-modal-head">
+              <h3 id="settingsModalTitle">Skill Details &amp; Prompt</h3>
+              <button class="settings-modal-close" id="settingsSkillModalClose">✕</button>
+            </div>
+            <div class="settings-modal-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Skill Name <span style="color:var(--accent)">*</span></label>
+                  <input type="text" id="settingsSkillName" placeholder="e.g. Amazon Price Tracker" />
+                </div>
+                <div class="form-group">
+                  <label>Icon (Emoji)</label>
+                  <input type="text" id="settingsSkillIcon" placeholder="⚙️" maxlength="4" />
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Category</label>
+                  <select id="settingsSkillCategory">
+                    <option>Research</option>
+                    <option>Shopping</option>
+                    <option>Social</option>
+                    <option>Productivity</option>
+                    <option>Data Extraction</option>
+                    <option>Form Filling</option>
+                    <option selected>Custom</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Description</label>
+                  <input type="text" id="settingsSkillDesc" placeholder="Brief summary of what this skill does" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Injected Agent Instructions &amp; Prompt <span style="color:var(--accent)">*</span></label>
+                <div class="field-hint" style="margin-bottom:6px;">This exact text is injected into the model system prompt when this skill runs:</div>
+                <textarea id="settingsSkillPrompt" rows="6" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r);font-family:var(--font-mono);font-size:12px;line-height:1.55;resize:vertical;" placeholder="Detailed step-by-step instructions for the agent..."></textarea>
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Allowed Hosts <span class="field-hint">(one per line)</span></label>
+                  <textarea id="settingsSkillHosts" rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);font-family:var(--font-mono);font-size:11.5px;resize:vertical;" placeholder="amazon.in&#10;flipkart.com"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Done Checklist <span class="field-hint">(one item per line)</span></label>
+                  <textarea id="settingsSkillChecklist" rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);font-family:var(--font-mono);font-size:11.5px;resize:vertical;" placeholder="Item 1 completed&#10;Item 2 completed"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="settings-modal-foot">
+              <button class="btn btn-outline" id="settingsSkillDeleteBtn" style="color:var(--red);border-color:rgba(196,50,36,0.3);display:none;">Delete Skill</button>
+              <div style="display:flex;gap:8px;margin-left:auto;">
+                <button class="btn btn-secondary" id="settingsSkillCancelBtn">Cancel</button>
+                <button class="btn btn-primary" id="settingsSkillSaveBtn">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EXPORT -->
+      <section class="tab-pane" id="pane-export">
+        <header class="section-header">
+          <h2>Export &amp; Storage</h2>
+          <p>Configure default export formats and file locations for scraped data.</p>
+        </header>
+
+        <div class="card">
+          <div class="form-group">
+            <label for="exportFormat">Preferred Export Format</label>
+            <select id="exportFormat">
+              <option value="json">JSON</option>
+              <option value="csv">CSV</option>
+              <option value="markdown">Markdown</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="exportFolder">Default Export Folder</label>
+            <input type="text" id="exportFolder" value="TechyMind" />
+            <p class="field-hint">Exports are saved under Downloads/TechyMind by default.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Configuration Backup</h3>
+          <p>Export or import your complete TechyMind settings profile.</p>
+          <div class="button-row">
+            <button class="btn btn-secondary" id="exportConfigBtn">Export Configuration (JSON)</button>
+            <label class="btn btn-secondary file-btn">
+              Import Configuration
+              <input type="file" id="importConfigFile" accept=".json" style="display:none" />
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- DIAGNOSTICS -->
+      <section class="tab-pane" id="pane-diagnostics">
+        <header class="section-header">
+          <h2>Diagnostics</h2>
+          <p>Run diagnostic checks against local filters, services, and system connectivity.</p>
+        </header>
+
+        <div class="card">
+          <div class="diag-list">
+            <div class="diag-item">
+              <div>
+                <strong>Privacy Test</strong>
+                <p>Validates face detection, credential masking, and Indian PII regex patterns.</p>
+              </div>
+              <button class="btn btn-secondary" id="testPrivacyBtn">Run Privacy Test</button>
+            </div>
+
+            <div class="diag-item">
+              <div>
+                <strong>Service Connection</strong>
+                <p>Validates connection to the active AI endpoint (Ollama / Compatible).</p>
+              </div>
+              <button class="btn btn-secondary" id="testServiceBtn">Check Service</button>
+            </div>
+
+            <div class="diag-item">
+              <div>
+                <strong>System Test</strong>
+                <p>Validates background service worker, tab permissions, and sandbox groups.</p>
+              </div>
+              <button class="btn btn-secondary" id="testSystemBtn">Run System Test</button>
+            </div>
+          </div>
+          <div class="diag-console" id="diagConsole" style="display:none">
+            <pre id="diagLog"></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
+      <section class="tab-pane" id="pane-about">
+        <header class="section-header">
+          <h2>About</h2>
+        </header>
+
+        <div class="about-card">
+          <div class="about-lock">🔒</div>
+          <h1 class="about-title">TechyMind</h1>
+          <p class="about-desc">An AI-powered browser agent for research, navigation, and web tasks.</p>
+        </div>
+      </section>
+
+      <!-- Global Save Footer -->
+      <div class="footer-actions">
+        <button class="btn btn-primary" id="saveAllSettingsBtn">Save Settings</button>
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module" src="settings.js"></script>
+</body>
+</html>
