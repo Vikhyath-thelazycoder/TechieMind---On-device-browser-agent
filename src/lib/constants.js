@@ -14,12 +14,12 @@ export const STORAGE_KEYS = {
 export const DEFAULT_SETTINGS = {
   provider:            'ollama',
   apiKey:              '',
-  model:               'qwen2.5:7b',
+  model:               'gemma3:12b',
   localModelId:        '',
   ollamaBaseUrl:       'http://127.0.0.1:11434',
   providerBaseUrl:     '',
   providerSupportsVision: false,
-  ollamaTextModel:     'qwen2.5:7b',
+  ollamaTextModel:     'gemma3:12b',
   ollamaVisionModel:   '',
   maxSteps:            25,
   screenshotDelay:     1200,
@@ -151,7 +151,7 @@ export const PROVIDER_DEFAULTS = {
   kimi:      { model: 'kimi-k3',                    label: 'Kimi' },
   glm:       { model: 'glm-4.7',                    label: 'GLM' },
   custom:    { model: '',                           label: 'OpenAI Compatible' },
-  ollama:    { model: 'qwen2.5:7b',                 label: 'Ollama' },
+  ollama:    { model: 'gemma3:12b',                 label: 'Ollama' },
 };
 
 /** Model options shown per provider in the settings UI */
@@ -165,7 +165,7 @@ export const PROVIDER_MODELS = {
   kimi:      ['kimi-k3', 'kimi-k2.5', 'kimi-k2-thinking', 'kimi-k2-turbo-preview'],
   glm:       ['glm-4.7', 'glm-4.5-air', 'glm-4.5v'],
   custom:    [],
-  ollama:    ['qwen2.5:7b', 'gemma3:12b', 'qwen2.5vl:7b', 'gemma3:4b', 'llama3.2:3b', 'llava:7b'],
+  ollama:    ['gemma3:12b', 'gemma3:4b', 'gemma2:9b', 'llama3.2:3b', 'llava:7b'],
 };
 
 // Skills messages (added in )

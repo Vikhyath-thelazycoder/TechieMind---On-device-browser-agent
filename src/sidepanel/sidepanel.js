@@ -19,7 +19,7 @@ const PROVIDER_MODELS = {
   kimi:      ['kimi-k3', 'kimi-k2.5', 'kimi-k2-thinking', 'kimi-k2-turbo-preview'],
   glm:       ['glm-4.7', 'glm-4.5-air', 'glm-4.5v'],
   custom:    [],
-  ollama:    ['qwen2.5:7b', 'gemma3:12b', 'qwen2.5vl:7b', 'gemma3:4b', 'llama3.2:3b', 'llava:7b'],
+  ollama:    ['gemma3:12b', 'gemma3:4b', 'gemma2:9b', 'llama3.2:3b', 'llava:7b'],
   local:     [],
 };
 
@@ -121,11 +121,7 @@ function getSelectedOllamaVisionModel() {
 
 function getDisplayedOllamaModel(settings = {}) {
   const textModel = String(settings.ollamaTextModel || settings.model || '').trim();
-  const visionModel = String(settings.ollamaVisionModel || settings.model || '').trim();
-  if (textModel && visionModel && textModel !== visionModel) {
-    return `${textModel} + ${visionModel}`;
-  }
-  return textModel || visionModel || 'Ollama';
+  return textModel || 'gemma3:12b';
 }
 
 // Which provider-type tab does a provider belong to?
@@ -411,12 +407,12 @@ async function toggleModelSelector() {
   const isLocal = provider === 'ollama';
   const is4o = provider === 'openai' && (model === 'gpt-4o' || !model);
   const is4oMini = provider === 'openai' && model === 'gpt-4o-mini';
-  const localModelName = settings.ollamaTextModel || settings.model || 'qwen2.5:7b';
+  const localModelName = settings.ollamaTextModel || settings.model || 'gemma3:12b';
 
   const items = [
-    { label: 'ChatGPT 4.0', desc: 'OpenAI GPT-4o', selected: is4o, action: () => selectStandardModel('openai', 'gpt-4o') },
-    { label: 'ChatGPT 4.0 Mini', desc: 'Fast & lightweight', selected: is4oMini, action: () => selectStandardModel('openai', 'gpt-4o-mini') },
-    { label: 'Local Model', desc: `Ollama (${localModelName})`, selected: isLocal, action: () => selectStandardModel('ollama', localModelName) },
+    { label: 'ChatGPT 4.0', desc: 'OpenAI GPT-4o', selected: is4o, action: () => selectDropdownModel('openai', 'gpt-4o') },
+    { label: 'ChatGPT 4.0 Mini', desc: 'Fast & lightweight', selected: is4oMini, action: () => selectDropdownModel('openai', 'gpt-4o-mini') },
+    { label: 'Local Model', desc: `Ollama (${localModelName})`, selected: isLocal, action: () => selectDropdownModel('ollama', localModelName) },
   ];
 
   dropdown.innerHTML = items.map((it, idx) => `
@@ -440,6 +436,8 @@ async function toggleModelSelector() {
 
   dropdown.classList.add('open');
 }
+
+const selectStandardModel = selectDropdownModel;
 
 async function selectDropdownModel(provider, modelId) {
   const settings = await getSettingsBg();
@@ -2229,51 +2227,97 @@ function updateSlashSelection() {
 // SKILLS — full CRUD: list, create, edit, delete, activate/deactivate per session
 
 // Built-in skills (offline fallback — the folder library in /skills is the
+// Built-in skills (offline fallback — the folder library in /skills is the
 // primary source; these are used only if SKILL.md files fail to load)
 const BUILT_IN_SKILLS = [
   {
-    id: 'builtin_summarise', name: 'Summarise Page', icon: '📄', category: 'Research', builtIn: true,
-    description: 'Summarise the current page directly from scraped page content.',
-    prompt: 'Summarise the current page directly from the readable page content. Do not rely on screenshots unless navigation is required first. Extract the main topic, key arguments or facts, and important conclusions. Present a concise summary with bullet points.',
+    id: 'fill-form', name: 'Fill Form', icon: '📝', category: 'Form Filling', builtIn: true,
+    description: 'Safe form completion. Fill visible fields from user profile or prompt, submit nothing without permission.',
+    prompt: 'Identify all visible form fields (inputs, textareas, selects, checkboxes). Fill each with appropriate data based on its label, placeholder, and name. Submit only if the user explicitly asked to submit.',
+    allowedHosts: [], preferredSites: [],
+    doneChecklist: ['Every visible required field identified and filled', 'Values sourced from USER PROFILE / task text only', 'Nothing submitted unless requested', 'Confirmation state described'],
+  },
+  {
+    id: 'summarize-page', name: 'Summarize Page', icon: '📄', category: 'Research', builtIn: true,
+    description: 'Summarize the current page directly from readable page content. Concise and bullet-pointed.',
+    prompt: 'Summarise the current page directly from the readable page content. Extract the main topic, key arguments or facts, and important conclusions. Present a concise summary with bullet points under 300 words.',
     allowedHosts: [], preferredSites: [],
     doneChecklist: ['Page content summarised', 'Key points listed as bullets', 'Summary under 300 words'],
   },
   {
-    id: 'builtin_web_scraper', name: 'Web Scraper', icon: '🕸️', category: 'Data Extraction', builtIn: true,
-    description: 'Scrape the current page into structured data and export it.',
-    prompt: 'Scrape the current page directly from the DOM. Extract structured rows, key fields, links, tables, and contact data where available. Prefer reusable structured data over prose. Prepare the output for JSON or CSV export.',
+    id: 'deep-research', name: 'Deep Research', icon: '🔬', category: 'Research', builtIn: true,
+    description: 'Multi-source research across 3+ independent sources with explicit citations.',
+    prompt: 'Research the given topic across at least 3 independent sources. Capture URLs, key claims, and synthesize findings noting agreements and conflicts. Cite sources by URL.',
+    allowedHosts: [], preferredSites: [],
+    doneChecklist: ['At least 3 independent sources visited', 'Key claims noted per source', 'Synthesis written with citations'],
+  },
+  {
+    id: 'extract-data', name: 'Extract Data', icon: '📊', category: 'Data Extraction', builtIn: true,
+    description: 'Scrape the current page into structured JSON or CSV data ready for export.',
+    prompt: 'Inspect tables, headings, and repeating records. Extract clean tabular JSON data without hallucinating missing fields.',
     allowedHosts: [], preferredSites: [],
     doneChecklist: ['Structured data extracted', 'Rows or key fields returned', 'Export-ready output prepared'],
   },
   {
-    id: 'builtin_price_check', name: 'Price Comparison', icon: '🛒', category: 'Shopping', builtIn: true,
-    description: 'Compare product prices across Amazon, Flipkart, and one other site.',
-    prompt: 'Search for the product on Amazon, Flipkart, and one other relevant site. For each: extract product name, exact price, rating, and URL. Return a comparison table with the best deal highlighted.',
+    id: 'compare-prices', name: 'Compare Prices', icon: '🛒', category: 'Shopping', builtIn: true,
+    description: 'Compare product prices across Amazon, Flipkart, and other retailers with verdict.',
+    prompt: 'Search for the product on Amazon, Flipkart, and one other relevant site. Extract product name, exact price, rating, and URL. Return a comparison table with the best deal highlighted.',
     allowedHosts: ['amazon.in', 'amazon.com', 'flipkart.com'],
     preferredSites: ['amazon.in', 'flipkart.com'],
     doneChecklist: ['Prices found on ≥2 sites', 'Ratings extracted', 'Best deal identified'],
   },
   {
-    id: 'builtin_extract_contacts', name: 'Extract Contacts', icon: '📧', category: 'Data Extraction', builtIn: true,
-    description: 'Scrape all emails, phone numbers, and contact names from the page.',
-    prompt: 'Scan the entire page (scroll to bottom if needed) and extract every email address, phone number, and contact name visible. Return results structured by type: emails, phones, names. Include the source page URL.',
+    id: 'find-alternatives', name: 'Find Alternatives', icon: '🔁', category: 'Research', builtIn: true,
+    description: 'Discover and vet 3-5 replacement options for a product, SaaS tool, or open-source library.',
+    prompt: 'Discover and vet replacement options for a product or site. Identify differences, pricing, and recommend best fit.',
     allowedHosts: [], preferredSites: [],
-    doneChecklist: ['Page fully scrolled', 'All emails extracted', 'All phones extracted', 'Results grouped by type'],
+    doneChecklist: ['3-5 distinct alternatives found', 'Key differences profiled', 'Recommendation given'],
   },
   {
-    id: 'builtin_multi_source', name: 'Multi-Source Research', icon: '🔬', category: 'Research', builtIn: true,
-    description: 'Research a topic across 3+ independent sources and synthesise findings.',
-    prompt: 'Research the given topic. Visit at least 3 independent, authoritative sources (not just Google). Per source: note URL, key claims, data points. Synthesise findings into a cohesive report noting agreements and conflicts. Cite sources by URL.',
+    id: 'manage-bookmarks', name: 'Manage Bookmarks', icon: '🔖', category: 'Productivity', builtIn: true,
+    description: 'Inspect, organize, and categorize browser bookmarks into thematic folders.',
+    prompt: 'Audit and organize bookmarks. Deduplicate and suggest a clean folder hierarchy.',
     allowedHosts: [], preferredSites: [],
-    doneChecklist: ['At least 3 independent sources visited', 'Key claims noted per source', 'Synthesis written with citations'],
+    doneChecklist: ['Bookmarks analyzed', 'Duplicates found', 'Reorganization plan created'],
   },
   {
-    id: 'builtin_form_filler', name: 'Smart Form Filler', icon: '📝', category: 'Form Filling', builtIn: true,
-    description: 'Detect and fill all visible form fields using task-provided information.',
-    prompt: 'Identify all visible form fields (inputs, textareas, selects, checkboxes). Fill each with appropriate data based on its label, placeholder, and name. Submit only if the user explicitly asked to submit.',
+    id: 'monitor-page', name: 'Monitor Page', icon: '👁️', category: 'Productivity', builtIn: true,
+    description: 'Check a page for updates, restocks, price drops, or changes.',
+    prompt: 'Inspect target element and detect diffs or changes from prior state.',
     allowedHosts: [], preferredSites: [],
-    doneChecklist: ['All form fields identified', 'Fields filled with appropriate data', 'Not submitted unless requested'],
+    doneChecklist: ['Target element inspected', 'Diff computed', 'Summary reported'],
   },
+  {
+    id: 'organize-tabs', name: 'Organize Tabs', icon: '🗂️', category: 'Productivity', builtIn: true,
+    description: 'Group open tabs by domain and topic, highlighting duplicate and memory-heavy tabs.',
+    prompt: 'Analyze all active tabs across windows. Group them into thematic collections.',
+    allowedHosts: [], preferredSites: [],
+    doneChecklist: ['Tabs grouped logically', 'Duplicates flagged', 'Close recommendations provided'],
+  },
+  {
+    id: 'read-later', name: 'Read Later Queue', icon: '📚', category: 'Productivity', builtIn: true,
+    description: 'Cleanly extract article text, estimated reading time, and author details.',
+    prompt: 'Extract distraction-free reading content stripped of ads and sidebars.',
+    allowedHosts: [], preferredSites: [],
+    doneChecklist: ['Article text extracted', 'Reading time estimated', 'Metadata recorded'],
+  },
+  {
+    id: 'save-page', name: 'Save Full Page', icon: '💾', category: 'Productivity', builtIn: true,
+    description: 'Archive the current page as an offline bundle or structured markdown note.',
+    prompt: 'Capture complete page contents, DOM structure, and metadata for long-term archiving.',
+    allowedHosts: [], preferredSites: [],
+    doneChecklist: ['Full page content retrieved', 'Clean markdown archive generated'],
+  },
+  {
+    id: 'screenshot-walkthrough', name: 'Screenshot Walkthrough', icon: '📸', category: 'Productivity', builtIn: true,
+    description: 'Capture step-by-step visual walkthrough of an interactive flow with annotated notes.',
+    prompt: 'Execute the user-requested flow step by step, taking screenshots at each key transition.',
+    allowedHosts: [], preferredSites: [],
+    doneChecklist: ['Each step executed cleanly', 'Visual state captured per step', 'Walkthrough guide produced'],
+  },
+  // Legacy aliases
+  { id: 'builtin_summarise', name: 'Summarize Page', icon: '📄', category: 'Research', builtIn: true, description: 'Summarize current page', prompt: 'Summarise page content', allowedHosts: [], preferredSites: [], doneChecklist: [] },
+  { id: 'builtin_form_filler', name: 'Smart Form Filler', icon: '📝', category: 'Form Filling', builtIn: true, description: 'Fill form fields', prompt: 'Fill visible inputs safely', allowedHosts: [], preferredSites: [], doneChecklist: [] },
 ];
 
 const USER_SKILLS_KEY = 'opencometSkills';

@@ -36,7 +36,7 @@ export function getProviderCapabilities(settings = {}) {
       json:             true,
       attachments:      supportsOllamaVision(ollamaVisionModel || (supportsOllamaVision(ollamaTextModel) ? ollamaTextModel : '')),
       browserAgentSafe: true,
-      defaultModel:     ollamaTextModel || 'qwen2.5:7b',
+      defaultModel:     ollamaTextModel || 'gemma3:12b',
     },
     deepseek: {
       vision:           false,
@@ -1070,7 +1070,7 @@ function supportsModelVision(model) {
 }
 
 function resolveOllamaTextModel(settings = {}) {
-  return String(settings.ollamaTextModel || settings.model || 'qwen2.5:7b').trim();
+  return String(settings.ollamaTextModel || settings.model || 'gemma3:12b').trim();
 }
 
 function resolveOllamaVisionModel(settings = {}) {

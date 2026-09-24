@@ -96,9 +96,9 @@ Configure and monitor your agent in a full-tab environment:
 5. Pin **TechyMind** 🔒 to your extension toolbar and open the side panel.
 
 ### 2. Configure Your AI Model
-Click **Settings ↗** in the top navigation to open the dedicated Settings tab:
+Click **Settings** in the extension toolbar to open the dedicated Settings page:
 - **Local Model (Recommended for 100% Privacy)**:
-  Ensure [Ollama](https://ollama.ai) is running locally (`ollama serve`), then select your desired local model (e.g., `qwen2.5:7b`).
+  Ensure [Ollama](https://ollama.ai) is running locally (`ollama serve`), then select your desired local model (e.g., `gemma3:12b`).
 - **Cloud Models**:
   Enter your API key for OpenAI, Anthropic, or Google Gemini.
 

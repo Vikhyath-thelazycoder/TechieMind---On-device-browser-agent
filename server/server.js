@@ -297,7 +297,7 @@ function defaultModelFor(backend) {
     case 'openai':    return 'gpt-4o';
     case 'anthropic': return 'claude-sonnet-4-20250514';
     case 'gemini':    return 'gemini-1.5-flash';
-    case 'ollama':    return 'qwen2.5:7b';
+    case 'ollama':    return 'gemma3:12b';
     case 'mistral':   return 'mistral-small-2506';
     case 'groq':      return 'llama-3.3-70b-versatile';
     case 'deepseek':  return 'deepseek-chat';

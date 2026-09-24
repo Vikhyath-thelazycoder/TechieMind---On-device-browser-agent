@@ -1,5 +1,6 @@
 // settings.js — TechyMind Dedicated Settings Controller
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from '../lib/constants.js';
+import { loadLibrarySkills } from '../lib/skill-library.js';
 
 const $ = id => document.getElementById(id);
 
@@ -76,72 +77,177 @@ async function initSettings() {
   await refreshOllamaModels();
 }
 
-// Built-in & Custom Skills Management
+// Built-in & Custom Skills Management (Complete 12-skill offline fallback)
 const DEFAULT_SKILLS = [
   {
-    id: 'builtin_summarise',
+    id: 'fill-form',
+    name: 'Fill Form',
+    icon: '📝',
+    category: 'Form Filling',
+    desc: 'Safe form completion. Fill visible fields from user profile or prompt, submit nothing without permission.',
+    prompt: `Safe form completion. Fill everything you can, submit nothing without permission.
+
+## Procedure
+1. Inventory every field from AVAILABLE INPUTS and INTERACTIVE ELEMENTS: inputs, textareas, selects, checkboxes, radios. Note label/placeholder/name.
+2. Map each field to a value from (in order): explicit task text -> USER PROFILE -> sensible neutral placeholder. NEVER invent legal, payment, or identity data that was not provided.
+3. type into each field. For selects use click then pick the option element. For checkbox consent: tick only what is required to proceed.
+4. Fill EVERYTHING first, then stop and report. submit ONLY if the task explicitly says to submit/send/apply.
+
+## Tool discipline
+- One field per type action; verify the value stuck from the page diff.
+- If a validation error appears, fix THAT field using the error text — do not re-fill the whole form.
+- Never touch fields the task did not mention if they are optional and unclear.
+
+## Answer format
+List: field -> value filled (mask sensitive values like passwords as •••). State clearly whether the form was submitted or left ready for review.`,
+    allowedHosts: [],
+    doneChecklist: ['Every visible required field identified and filled', 'Values sourced from USER PROFILE / task text only', 'Nothing submitted unless the user explicitly asked', 'Confirmation state described in the answer'],
+    builtIn: true,
+  },
+  {
+    id: 'summarize-page',
     name: 'Summarize Page',
     icon: '📄',
     category: 'Research',
-    desc: 'Summarise the current page directly from readable page content.',
-    prompt: 'Summarise the current page directly from the readable page content. Do not rely on screenshots unless navigation is required first. Extract the main topic, key arguments or facts, and important conclusions. Present a concise summary with bullet points.',
+    desc: 'Summarize the current page directly from readable text content. Concise, bullet-pointed, zero-navigation.',
+    prompt: `Summarize the page the user is already on. Text-first, zero-navigation by default.
+
+## Procedure
+1. Read Readable page text and Headings from the structured page data FIRST. Do not take a screenshot-driven approach unless text is empty or navigation is required.
+2. If the content is longer than the visible excerpt, use ONE scroll to bottom, then summarize.
+3. Produce a structured summary under 300 words with:
+   - 1-sentence TL;DR
+   - 3–5 bullet points covering the core arguments, facts, or steps
+   - Key conclusion or actionable takeaway`,
     allowedHosts: [],
-    doneChecklist: ['Page content summarised', 'Key points listed as bullets', 'Summary under 300 words'],
+    doneChecklist: ['Main topic identified from page content', 'Key points listed as concise bullets', 'Summary stays under 300 words', 'No navigation performed unless page content was empty'],
     builtIn: true,
   },
   {
-    id: 'builtin_web_scraper',
-    name: 'Web Scraper & Data Extractor',
-    icon: '🕸️',
-    category: 'Data Extraction',
-    desc: 'Scrape the current page into structured data and export it.',
-    prompt: 'Scrape the current page directly from the DOM. Extract structured rows, key fields, links, tables, and contact data where available. Prefer reusable structured data over prose. Prepare the output for JSON or CSV export.',
-    allowedHosts: [],
-    doneChecklist: ['Structured data extracted', 'Rows or key fields returned', 'Export-ready output prepared'],
-    builtIn: true,
-  },
-  {
-    id: 'builtin_price_check',
-    name: 'Price Comparison',
-    icon: '🛒',
-    category: 'Shopping',
-    desc: 'Compare product prices across Amazon, Flipkart, and other retailers.',
-    prompt: 'Search for the product on Amazon, Flipkart, and one other relevant site. For each: extract product name, exact price, rating, and URL. Return a comparison table with the best deal highlighted.',
-    allowedHosts: ['amazon.in', 'amazon.com', 'flipkart.com'],
-    doneChecklist: ['Prices found on ≥2 sites', 'Ratings extracted', 'Best deal identified'],
-    builtIn: true,
-  },
-  {
-    id: 'builtin_extract_contacts',
-    name: 'Extract Contacts',
-    icon: '📧',
-    category: 'Data Extraction',
-    desc: 'Scrape all emails, phone numbers, and contact names from the page.',
-    prompt: 'Scan the entire page (scroll to bottom if needed) and extract every email address, phone number, and contact name visible. Return results structured by type: emails, phones, names. Include the source page URL.',
-    allowedHosts: [],
-    doneChecklist: ['Page fully scrolled', 'All emails extracted', 'All phones extracted', 'Results grouped by type'],
-    builtIn: true,
-  },
-  {
-    id: 'builtin_multi_source',
-    name: 'Deep Multi-Source Research',
+    id: 'deep-research',
+    name: 'Deep Research',
     icon: '🔬',
     category: 'Research',
-    desc: 'Research a topic across 3+ independent sources and synthesise findings.',
-    prompt: 'Research the given topic. Visit at least 3 independent, authoritative sources (not just Google). Per source: note URL, key claims, data points. Synthesise findings into a cohesive report noting agreements and conflicts. Cite sources by URL.',
+    desc: 'Multi-source investigation with citations. Visits 3+ independent sources and synthesises agreements and conflicts.',
+    prompt: `Multi-source investigation with explicit citations. Quality over speed, but never wander.
+
+## Procedure
+1. Decompose the task into 2–4 concrete research questions before browsing.
+2. Use search for the first question. Open the 2–3 most authoritative results with new_tab.
+3. For each visited source: extract key claims, facts, numbers, and record the exact URL.
+4. Synthesize findings into a structured report noting both consensus and contradictions between sources. Cite every claim by source URL.`,
     allowedHosts: [],
-    doneChecklist: ['At least 3 independent sources visited', 'Key claims noted per source', 'Synthesis written with citations'],
+    doneChecklist: ['At least 3 independent sources visited', 'URL + key claims captured per source', 'Synthesis written noting agreements AND disagreements', 'All claims cite their source URL'],
     builtIn: true,
   },
   {
-    id: 'builtin_form_filler',
-    name: 'Smart Form Filler',
-    icon: '📝',
-    category: 'Form Filling',
-    desc: 'Detect and fill all visible form fields using task-provided information.',
-    prompt: 'Identify all visible form fields (inputs, textareas, selects, checkboxes). Fill each with appropriate data based on its label, placeholder, and name. Submit only if the user explicitly asked to submit.',
+    id: 'extract-data',
+    name: 'Extract Data',
+    icon: '📊',
+    category: 'Data Extraction',
+    desc: 'Scrape repeating rows, tables, or fields into structured JSON/CSV data ready for export.',
+    prompt: `Turn the current page into structured, export-ready data. Precision over prose.
+
+## Procedure
+1. Inspect Tables, Headings, and page text to find the repeating data pattern (product rows, contact blocks, table columns, link lists).
+2. Extract all records into clean, tabular JSON format. Include column headers and normalized field names.
+3. Capture source URL and timestamp. Never invent or hallucinate missing data — mark empty fields as null.`,
     allowedHosts: [],
-    doneChecklist: ['All form fields identified', 'Fields filled with appropriate data', 'Not submitted unless requested'],
+    doneChecklist: ['Every matching row/field on the page captured', 'Data returned as structured JSON (or CSV if requested)', 'Source URL and capture time noted', 'Zero invented values — missing fields are null'],
+    builtIn: true,
+  },
+  {
+    id: 'compare-prices',
+    name: 'Compare Prices',
+    icon: '🛒',
+    category: 'Shopping',
+    desc: 'Cross-store price comparison across Amazon, Flipkart, and other retailers with an explicit verdict.',
+    prompt: `Cross-store price comparison with an explicit verdict.
+
+## Procedure
+1. Determine the exact product identity from the task (model, size, variant).
+2. Search and compare prices across Amazon, Flipkart, and relevant stores.
+3. For each store: extract product title, exact numeric price, seller/rating, and product link.
+4. Output a clean comparison table and declare the best overall deal taking shipping into account.`,
+    allowedHosts: ['amazon.in', 'amazon.com', 'flipkart.com'],
+    doneChecklist: ['Product found on at least 2 shopping sites', 'Name, price, rating, URL captured per site', 'Best deal explicitly identified with total cost', 'Comparison table returned in data'],
+    builtIn: true,
+  },
+  {
+    id: 'find-alternatives',
+    name: 'Find Alternatives',
+    icon: '🔁',
+    category: 'Research',
+    desc: 'Discover and vet 3-5 replacement options for a product, SaaS tool, or open-source library.',
+    prompt: `Discover and vet replacement options for a product, tool, or site. Identify key differences, pricing models, open-source status, and recommend the best fit.`,
+    allowedHosts: [],
+    doneChecklist: ['3–5 distinct alternatives found and verified', 'One-line profile per alternative (what/why/price model/URL)', 'A clear recommendation matched to the user\'s context'],
+    builtIn: true,
+  },
+  {
+    id: 'manage-bookmarks',
+    name: 'Manage Bookmarks',
+    icon: '🔖',
+    category: 'Productivity',
+    desc: 'Inspect, organize, and categorize browser bookmarks into coherent thematic folders.',
+    prompt: `Audit and organize bookmarks. Deduplicate, categorize by topic, and suggest a clean folder hierarchy.`,
+    allowedHosts: [],
+    doneChecklist: ['Duplicate bookmarks identified', 'Topic hierarchy generated', 'Actionable reorganization proposed'],
+    builtIn: true,
+  },
+  {
+    id: 'monitor-page',
+    name: 'Monitor Page',
+    icon: '👁️',
+    category: 'Productivity',
+    desc: 'Check a page for updates, restocks, price drops, or changes since last visit.',
+    prompt: `Inspect the current page state and compare against previous known state. Report precise diffs or price changes.`,
+    allowedHosts: [],
+    doneChecklist: ['Target element inspected', 'Current numeric value or text recorded', 'Change summary reported'],
+    builtIn: true,
+  },
+  {
+    id: 'organize-tabs',
+    name: 'Organize Tabs',
+    icon: '🗂️',
+    category: 'Productivity',
+    desc: 'Group open tabs by domain and topic, highlighting duplicate and memory-heavy tabs.',
+    prompt: `Analyze all active tabs across windows. Group them into thematic collections and identify stale or duplicate tabs.`,
+    allowedHosts: [],
+    doneChecklist: ['Tabs grouped logically by domain/topic', 'Duplicate tabs flagged', 'Close recommendations provided'],
+    builtIn: true,
+  },
+  {
+    id: 'read-later',
+    name: 'Read Later Queue',
+    icon: '📚',
+    category: 'Productivity',
+    desc: 'Cleanly extract article text, estimated reading time, and author details for offline review.',
+    prompt: `Extract distraction-free reading content. Strip ads, banners, and sidebars, returning clean markdown.`,
+    allowedHosts: [],
+    doneChecklist: ['Main body text extracted cleanly', 'Reading time estimated', 'Metadata (author, date, source) recorded'],
+    builtIn: true,
+  },
+  {
+    id: 'save-page',
+    name: 'Save Full Page',
+    icon: '💾',
+    category: 'Productivity',
+    desc: 'Archive the current page as an offline bundle, markdown note, or structured screenshot sequence.',
+    prompt: `Capture complete page contents, DOM structure, and metadata for long-term archiving.`,
+    allowedHosts: [],
+    doneChecklist: ['Full page content retrieved', 'Assets documented', 'Clean markdown archive generated'],
+    builtIn: true,
+  },
+  {
+    id: 'screenshot-walkthrough',
+    name: 'Screenshot Walkthrough',
+    icon: '📸',
+    category: 'Productivity',
+    desc: 'Capture step-by-step visual walkthrough of an interactive flow with annotated notes.',
+    prompt: `Execute the user-requested flow step by step, taking screenshots at each key transition to generate a visual guide.`,
+    allowedHosts: [],
+    doneChecklist: ['Each step executed cleanly', 'Visual state captured per step', 'Annotated walkthrough guide produced'],
     builtIn: true,
   },
 ];
@@ -150,16 +256,24 @@ let allSettingsSkills = [];
 let editingSettingsSkillId = null;
 
 async function loadSettingsSkills() {
+  let libSkills = [];
+  try {
+    libSkills = await loadLibrarySkills();
+  } catch (e) {
+    console.warn('[Settings] Failed to fetch library skills, using defaults:', e);
+  }
+  const baseSkills = (libSkills && libSkills.length > 0) ? libSkills : DEFAULT_SKILLS;
+
   return new Promise(resolve => {
     if (!chrome.storage?.local) {
-      resolve([...DEFAULT_SKILLS]);
+      resolve([...baseSkills]);
       return;
     }
     chrome.storage.local.get('opencometSkills', data => {
       const userSkills = data['opencometSkills'] || [];
       const seen = new Set();
       // User customized skills take precedence
-      const merged = [...userSkills, ...DEFAULT_SKILLS].filter(s => {
+      const merged = [...userSkills, ...baseSkills].filter(s => {
         if (!s?.id || seen.has(s.id)) return false;
         seen.add(s.id);
         return true;
@@ -377,10 +491,10 @@ async function saveSettings() {
   const updated = {
     ...currentSettings,
     ollamaBaseUrl: $('ollamaBaseUrl')?.value.trim() || 'http://127.0.0.1:11434',
-    ollamaTextModel: $('ollamaModelSelect')?.value || currentSettings.ollamaTextModel || 'qwen2.5:7b',
+    ollamaTextModel: $('ollamaModelSelect')?.value || currentSettings.ollamaTextModel || 'gemma3:12b',
     providerBaseUrl: $('compatibleBaseUrl')?.value.trim() || '',
     apiKey: $('compatibleApiKey')?.value.trim() || '',
-    model: $('ollamaModelSelect')?.value || currentSettings.model || 'qwen2.5:7b',
+    model: $('ollamaModelSelect')?.value || currentSettings.model || 'gemma3:12b',
     braveSearchKey: $('braveKey')?.value.trim() || '',
     langSearchKey: $('langSearchKey')?.value.trim() || '',
     serperKey: $('serperKey')?.value.trim() || '',
