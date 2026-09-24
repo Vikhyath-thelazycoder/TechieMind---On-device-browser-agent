@@ -6,12 +6,10 @@ Documentation for **TechyMind** — the privacy-first autonomous browser agent. 
 
 ```
 docs/
-├── changelog/     ← release notes
+├── changelog/     ← unified release notes (v5.0.0)
 ├── guides/        ← install, features, demos, developer & debugging guides
-├── architecture/  ← privacy architecture deep-dive
-├── research/      ← measured latency research that shaped the speed profiles
-├── project/       ← roadmap & historical project notes
-└── assets/        ← brand icons + demo test pages
+├── architecture/  ← privacy architecture & fail-closed engine deep-dives
+└── assets/        ← brand icons, architecture diagrams & judge demo testbed
 ```
 
 ## Start here
