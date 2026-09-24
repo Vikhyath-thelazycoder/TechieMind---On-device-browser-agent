@@ -285,7 +285,6 @@ const navHistory  = $('navHistory');
 const navSettings = $('navSettings');
 const topNavAgent    = $('topNavAgent');
 const topNavHistory  = $('topNavHistory');
-const topNavSettings = $('topNavSettings');
 const modelPillBtn = $('modelPillBtn');
 
 if (navAgent)       navAgent.addEventListener('click',       () => showView('agent'));
@@ -293,7 +292,6 @@ if (navHistory)     navHistory.addEventListener('click',     () => showView('his
 if (navSettings)    navSettings.addEventListener('click',    () => showView('settings'));
 if (topNavAgent)    topNavAgent.addEventListener('click',    () => showView('agent'));
 if (topNavHistory)  topNavHistory.addEventListener('click',  () => showView('history'));
-if (topNavSettings) topNavSettings.addEventListener('click', () => showView('settings'));
 const toolbarSettingsBtn = $('toolbarSettingsBtn');
 if (toolbarSettingsBtn) toolbarSettingsBtn.addEventListener('click', () => showView('settings'));
 const suggestSettingsBtn = $('suggestSettingsBtn');
@@ -312,6 +310,199 @@ if (newChatBtn) {
     showView('agent');
     taskInput?.focus();
   });
+}
+
+// Multilingual Voice Input (Speech-to-Text) (Video 3 requirement)
+const VOICE_LANGS = [
+  { code: 'en-IN', label: 'EN' },
+  { code: 'hi-IN', label: 'HI' },
+  { code: 'kn-IN', label: 'KN' },
+];
+let currentVoiceLangIndex = 0;
+let recognition = null;
+let isVoiceListening = false;
+
+const voiceInputBtn = $('voiceInputBtn');
+const voiceLangBtn = $('voiceLangBtn');
+const voiceLangLabel = $('voiceLangLabel');
+
+function initVoiceRecognition() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) return null;
+  const rec = new SpeechRec();
+  rec.continuous = false;
+  rec.interimResults = true;
+  rec.lang = VOICE_LANGS[currentVoiceLangIndex].code;
+
+  rec.onstart = () => {
+    isVoiceListening = true;
+    if (voiceInputBtn) voiceInputBtn.classList.add('listening');
+  };
+
+  rec.onresult = (event) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      transcript += event.results[i][0].transcript;
+    }
+    if (taskInput) {
+      taskInput.value = transcript;
+      taskInput.dispatchEvent(new Event('input'));
+    }
+  };
+
+  rec.onerror = (event) => {
+    console.warn('[TechyMind][Voice] Error:', event.error);
+    isVoiceListening = false;
+    if (voiceInputBtn) voiceInputBtn.classList.remove('listening');
+  };
+
+  rec.onend = () => {
+    isVoiceListening = false;
+    if (voiceInputBtn) voiceInputBtn.classList.remove('listening');
+  };
+  return rec;
+}
+
+if (voiceLangBtn) {
+  voiceLangBtn.addEventListener('click', () => {
+    currentVoiceLangIndex = (currentVoiceLangIndex + 1) % VOICE_LANGS.length;
+    const nextLang = VOICE_LANGS[currentVoiceLangIndex];
+    if (voiceLangLabel) voiceLangLabel.textContent = nextLang.label;
+    if (recognition) recognition.lang = nextLang.code;
+  });
+}
+
+if (voiceInputBtn) {
+  voiceInputBtn.addEventListener('click', () => {
+    if (!recognition) recognition = initVoiceRecognition();
+    if (!recognition) {
+      alert('Speech recognition is not supported in this browser.');
+      return;
+    }
+    if (isVoiceListening) {
+      recognition.stop();
+    } else {
+      try {
+        recognition.lang = VOICE_LANGS[currentVoiceLangIndex].code;
+        recognition.start();
+      } catch (err) {
+        console.warn('[TechyMind][Voice] Start error:', err);
+      }
+    }
+  });
+}
+
+// ── Text-to-Speech (Spoken Voice Output) with Female / Girl Voice preference ──
+let isVoiceOutputEnabled = true; // default enabled
+const voiceOutputBtn = $('voiceOutputBtn');
+
+function updateVoiceOutputBtnUI() {
+  if (!voiceOutputBtn) return;
+  voiceOutputBtn.classList.toggle('active', isVoiceOutputEnabled);
+  voiceOutputBtn.title = isVoiceOutputEnabled
+    ? 'Spoken Voice Response: ON (Click to mute)'
+    : 'Spoken Voice Response: OFF (Click to unmute)';
+  voiceOutputBtn.innerHTML = isVoiceOutputEnabled
+    ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      </svg>`
+    : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <line x1="23" y1="9" x2="17" y2="15"/>
+        <line x1="17" y1="9" x2="23" y2="15"/>
+      </svg>`;
+}
+
+// Load persisted preference
+if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+  chrome.storage.local.get(['voiceOutputEnabled'], (res) => {
+    if (res && res.voiceOutputEnabled !== undefined) {
+      isVoiceOutputEnabled = Boolean(res.voiceOutputEnabled);
+      updateVoiceOutputBtnUI();
+    }
+  });
+}
+
+if (voiceOutputBtn) {
+  voiceOutputBtn.addEventListener('click', () => {
+    isVoiceOutputEnabled = !isVoiceOutputEnabled;
+    updateVoiceOutputBtnUI();
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      chrome.storage.local.set({ voiceOutputEnabled: isVoiceOutputEnabled });
+    }
+    if (!isVoiceOutputEnabled && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  });
+}
+
+function getBestFemaleVoice(langCode) {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices() || [];
+  if (!voices.length) return null;
+
+  const prefix = (langCode || 'en').split('-')[0].toLowerCase();
+  const langVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(prefix));
+  const candidatePool = langVoices.length ? langVoices : voices;
+
+  const femaleKeywords = ['female', 'girl', 'kavya', 'veena', 'sangeeta', 'heera', 'samantha', 'zira', 'karen', 'victoria', 'moira', 'fiona', 'tessa'];
+  for (const kw of femaleKeywords) {
+    const match = candidatePool.find(v => v.name && v.name.toLowerCase().includes(kw));
+    if (match) return match;
+  }
+  return candidatePool[0] || voices[0];
+}
+
+function formatSpokenSummary(rawText) {
+  if (!rawText || typeof rawText !== 'string') {
+    return "I've completed your task. Everything is ready on screen for you to review.";
+  }
+  let clean = rawText
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/[#*_~\[\]]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sentences = clean.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 3);
+  if (sentences.length > 0 && sentences[0].length < 130) {
+    let result = sentences[0];
+    if (sentences.length > 1 && (result.length + sentences[1].length < 160)) {
+      result += ' ' + sentences[1];
+    }
+    return result;
+  }
+  return "I've finished your task and prepared the summary. Everything is ready for you to check.";
+}
+
+function speakVoiceSummary(rawText) {
+  if (!isVoiceOutputEnabled || !window.speechSynthesis) return;
+  try {
+    window.speechSynthesis.cancel();
+    const spokenText = formatSpokenSummary(rawText);
+    const langCode = VOICE_LANGS[currentVoiceLangIndex]?.code || 'en-IN';
+    const utterance = new SpeechSynthesisUtterance(spokenText);
+    utterance.lang = langCode;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.08; // Natural, pleasant female voice tone
+
+    const voice = getBestFemaleVoice(langCode);
+    if (voice) utterance.voice = voice;
+
+    utterance.onstart = () => {
+      if (voiceOutputBtn) voiceOutputBtn.classList.add('speaking');
+    };
+    utterance.onend = utterance.onerror = () => {
+      if (voiceOutputBtn) voiceOutputBtn.classList.remove('speaking');
+    };
+
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.warn('[TechyMind][TTS] Spoken summary error:', err);
+  }
 }
 
 const openSkillsBtn  = $('openSkillsBtn');
@@ -781,9 +972,11 @@ chrome.runtime.onMessage.addListener(msg => {
       setRunning(false);
       // privacy runs now carry the FINAL ANSWER (information/summary
       // tasks) — render it instead of a bare "Task complete."
-      renderResultCard(msg.answer || msg.summary?.finalAnswer || msg.summary?.finalThought || 'Task complete.');
+      const finalAgentAns = msg.answer || msg.summary?.finalAnswer || msg.summary?.finalThought || 'Task complete.';
+      renderResultCard(finalAgentAns);
       renderHistory();
       playNotificationSound('complete');
+      speakVoiceSummary(finalAgentAns);
       // feed the measured run latency profile to the Scorecard.
       try { document.dispatchEvent(new CustomEvent('sih-run-finished', { detail: msg.summary || null })); } catch {}
       break;
@@ -810,6 +1003,7 @@ chrome.runtime.onMessage.addListener(msg => {
       setRunning(false);
       renderResearchCard(msg.task, msg.report, msg.subQueries, msg.sources);
       playNotificationSound('complete');
+      speakVoiceSummary(msg.report || 'Deep research task completed.');
       break;
 
     case 'DEEP_RESEARCH_ERROR':
@@ -822,8 +1016,10 @@ chrome.runtime.onMessage.addListener(msg => {
     case 'SUMMARIZE_DONE':
       currentRunKind = null;
       setRunning(false);
-      renderResultCard(msg.summary || msg.answer || 'Summary complete.');
+      const sumAns = msg.summary || msg.answer || 'Summary complete.';
+      renderResultCard(sumAns);
       playNotificationSound('complete');
+      speakVoiceSummary(sumAns);
       break;
 
     case 'SUMMARIZE_ERROR':
@@ -838,6 +1034,7 @@ chrome.runtime.onMessage.addListener(msg => {
       setRunning(false);
       renderScrapeCard(msg.task, msg.dataset || msg.result, msg.page || msg.dataset, msg.exports || msg.exportMeta);
       playNotificationSound('complete');
+      speakVoiceSummary('Page data extracted successfully. You can review the results on screen.');
       break;
 
     case 'SCRAPE_STEP':
@@ -1067,40 +1264,27 @@ function sanitizeStepText(type, rawText) {
     const lower = text.toLowerCase();
     const cleanStates = [
       'searching...', 'reading page...', 'extracting...', 'running task...',
-      'waiting for confirmation...', 'completed', 'thinking…', 'thinking...'
+      'waiting for confirmation...', 'completed'
     ];
     if (cleanStates.includes(lower)) return text;
 
-    const isCoT = text.length > 70 ||
-      lower.startsWith('i should') ||
-      lower.startsWith('i need to') ||
-      lower.startsWith('let me') ||
-      lower.startsWith('first,') ||
-      lower.startsWith('thought:') ||
-      lower.startsWith('reasoning:') ||
-      lower.includes('chain of thought') ||
-      lower.includes('analyzing the dom') ||
-      lower.includes('dom_sweep') ||
-      lower.includes('json');
-
-    if (isCoT) {
-      if (lower.includes('search') || lower.includes('google') || lower.includes('query')) {
-        return 'Searching...';
-      }
-      if (lower.includes('page') || lower.includes('dom') || lower.includes('read') || lower.includes('inspect') || lower.includes('scroll')) {
-        return 'Reading page...';
-      }
-      if (lower.includes('extract') || lower.includes('scrape') || lower.includes('table') || lower.includes('data')) {
-        return 'Extracting...';
-      }
-      if (lower.includes('confirm') || lower.includes('ask') || lower.includes('permission')) {
-        return 'Waiting for confirmation...';
-      }
-      if (lower.includes('done') || lower.includes('finish') || lower.includes('success')) {
-        return 'Completed';
-      }
-      return 'Running task...';
+    // Strict CoT suppression: Never expose internal reasoning / thoughts / prompts to the user
+    if (lower.includes('search') || lower.includes('google') || lower.includes('query') || lower.includes('bing') || lower.includes('duckduckgo')) {
+      return 'Searching...';
     }
+    if (lower.includes('page') || lower.includes('dom') || lower.includes('read') || lower.includes('inspect') || lower.includes('scroll') || lower.includes('element')) {
+      return 'Reading page...';
+    }
+    if (lower.includes('extract') || lower.includes('scrape') || lower.includes('table') || lower.includes('data') || lower.includes('export')) {
+      return 'Extracting...';
+    }
+    if (lower.includes('confirm') || lower.includes('ask') || lower.includes('permission') || lower.includes('approval')) {
+      return 'Waiting for confirmation...';
+    }
+    if (lower.includes('done') || lower.includes('finish') || lower.includes('success') || lower.includes('complete')) {
+      return 'Completed';
+    }
+    return 'Running task...';
   }
   return text;
 }

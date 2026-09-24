@@ -104,6 +104,7 @@
         <div class="sub-nav">
           <button class="sub-nav-btn active" data-sub="ollama">Local Model (Ollama)</button>
           <button class="sub-nav-btn" data-sub="compatible">Compatible (OpenAI Compatible)</button>
+          <button class="sub-nav-btn" data-sub="voice">Voice &amp; Audio (Speech / TTS)</button>
         </div>
 
         <!-- Ollama Section -->
@@ -169,6 +170,60 @@
             <div class="form-group">
               <label for="compatibleModel">Model Name</label>
               <input type="text" id="compatibleModel" placeholder="gpt-4o" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Voice & Audio Section -->
+        <div class="sub-pane" id="sub-voice">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">🎙️</div>
+              <div>
+                <h3>Voice Input (Speech-to-Text)</h3>
+                <p>Configure speech recognition for voice task inputs.</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="voiceInputEngine">Recognition Engine</label>
+              <select id="voiceInputEngine">
+                <option value="webspeech" selected>Browser Web Speech API (Default — Free, No Key Required)</option>
+                <option value="whisper">OpenAI Whisper Cloud API (Requires API Key)</option>
+              </select>
+              <p class="field-hint">The default Web Speech API runs directly in the browser and recognizes English, Hindi, and Kannada without requiring any API key.</p>
+            </div>
+
+            <div class="form-group" id="whisperKeyGroup" style="display:none">
+              <label for="whisperApiKey">Whisper API Key</label>
+              <input type="password" id="whisperApiKey" placeholder="sk-..." />
+              <p class="field-hint">Used for OpenAI Whisper cloud speech-to-text recognition.</p>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:16px">
+            <div class="card-header">
+              <div class="card-icon">🔊</div>
+              <div>
+                <h3>Spoken Voice Output (Text-to-Speech)</h3>
+                <p>Let the assistant speak short Siri-like summaries out loud when tasks complete.</p>
+              </div>
+            </div>
+
+            <div class="form-group toggle-row">
+              <div class="toggle-text">
+                <label for="voiceOutputToggle">Enable Voice Responses</label>
+                <p>Speak concise summaries after completing browsing, research, or extraction tasks.</p>
+              </div>
+              <input type="checkbox" id="voiceOutputToggle" class="switch" checked />
+            </div>
+
+            <div class="form-group">
+              <label for="voicePersonaSelect">Voice Persona</label>
+              <select id="voicePersonaSelect">
+                <option value="female" selected>Female / Girl Voice (Natural &amp; Friendly)</option>
+                <option value="default">System Default Voice</option>
+              </select>
             </div>
           </div>
         </div>
@@ -442,14 +497,21 @@
         </div>
 
         <div class="card">
-          <h3>Configuration Backup</h3>
-          <p>Export or import your complete TechyMind settings profile.</p>
-          <div class="button-row">
-            <button class="btn btn-secondary" id="exportConfigBtn">Export Configuration (JSON)</button>
-            <label class="btn btn-secondary file-btn">
-              Import Configuration
-              <input type="file" id="importConfigFile" accept=".json" style="display:none" />
-            </label>
+          <h3>Configuration Backup &amp; Restore</h3>
+          <p>Export your settings or restore from an existing JSON configuration file.</p>
+          <div class="button-row" style="margin-bottom:16px;">
+            <button class="btn btn-secondary" id="exportConfigBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Configuration (JSON)
+            </button>
+          </div>
+
+          <div class="import-drop-zone" id="importDropZone">
+            <div class="idz-icon">📥</div>
+            <div class="idz-title">Drop TechyMind JSON here</div>
+            <div class="idz-sub">or <label class="idz-browse-btn" for="importConfigFile">Browse file</label> from your computer</div>
+            <input type="file" id="importConfigFile" accept=".json,application/json" style="display:none" />
+            <div class="idz-feedback" id="importFeedback" style="display:none;"></div>
           </div>
         </div>
       </section>

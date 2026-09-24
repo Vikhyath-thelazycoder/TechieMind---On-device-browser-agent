@@ -1155,7 +1155,90 @@ a:hover { color: var(--accent-h); text-decoration: underline; }
 }
 #modeIcon { font-size: 13px; }
 
-.input-actions { display: flex; align-items: center; gap: 7px; }
+.input-actions { display: flex; align-items: center; gap: 6px; }
+
+.voice-lang-btn {
+  background: #f7f4ee;
+  border: 1px solid var(--border);
+  color: var(--tx2);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  height: 30px;
+  padding: 0 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.voice-lang-btn:hover {
+  background: #ffffff;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.voice-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: #f7f4ee;
+  border: 1px solid var(--border);
+  color: var(--tx2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.voice-btn:hover {
+  background: #ffffff;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.voice-btn.listening {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  animation: pulseMic 1s infinite alternate;
+}
+@keyframes pulseMic {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 50, 36, 0.4); }
+  100% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(196, 50, 36, 0); }
+}
+
+.voice-output-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: #f7f4ee;
+  border: 1px solid var(--border);
+  color: var(--tx3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.voice-output-btn:hover {
+  background: #ffffff;
+  color: var(--tx1);
+  border-color: var(--accent);
+}
+.voice-output-btn.active {
+  background: rgba(196, 50, 36, 0.08);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.voice-output-btn.speaking {
+  animation: pulseSpeaker 0.8s infinite alternate;
+}
+@keyframes pulseSpeaker {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); color: #c43224; }
+}
 
 .stop-btn {
   width: 34px; height: 34px; border-radius: 50%;

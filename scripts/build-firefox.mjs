@@ -25,7 +25,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // Chrome-only permissions Firefox neither needs nor understands.
 export const CHROME_ONLY_PERMISSIONS = ['sidePanel', 'offscreen', 'debugger', 'tabGroups', 'pageCapture', 'readingList'];
 
-const GECKO_ID = 'opencomet-sih@opencomet.dev';
+const GECKO_ID = 'techymind@techymind.dev';
 const GECKO_MIN_VERSION = '115.0'; // MV3 event pages + object-form WAR/CSP baseline
 
 /**

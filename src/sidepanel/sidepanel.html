@@ -328,6 +328,23 @@
               </svg>
             </button>
             <div class="input-actions">
+              <button class="voice-lang-btn" id="voiceLangBtn" title="Switch Voice Language (EN / HI / KN)" type="button">
+                <span id="voiceLangLabel">EN</span>
+              </button>
+              <button class="voice-btn" id="voiceInputBtn" title="Voice Input (Speech-to-Text)" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+              </button>
+              <button class="voice-output-btn active" id="voiceOutputBtn" title="Spoken Voice Output: ON (Click to mute)" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+              </button>
               <button class="stop-btn" id="stopBtn" title="Stop">
                 <svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor">
                   <rect x="1" y="1" width="9" height="9" rx="2"/>
@@ -988,7 +1005,7 @@
         </div>
         <div class="s-field">
           <label class="s-label">Export folder <span class="s-hint">Inside browser downloads</span></label>
-          <input type="text" class="s-input" id="exportFolderInput" placeholder="Open Comet Exports"/>
+          <input type="text" class="s-input" id="exportFolderInput" placeholder="TechyMind Exports"/>
         </div>
         <div class="s-field">
           <label class="s-label">Storage label <span class="s-hint">Used inside browser downloads</span></label>

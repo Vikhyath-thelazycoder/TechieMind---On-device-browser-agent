@@ -183,6 +183,11 @@
       #open-comet-stop-btn svg {
         opacity: 0.9;
       }
+
+      @keyframes techymindRipple {
+        0% { transform: scale(0.2); opacity: 1; }
+        100% { transform: scale(2.4); opacity: 0; }
+      }
     `;
 
     overlayEl = document.createElement('div');
@@ -194,7 +199,7 @@
         </div>
       </div>
       <div class="nc-content">
-        <div class="nc-label">Open Comet is working</div>
+        <div class="nc-label">TechyMind is working</div>
         <div class="nc-status" id="open-comet-status-text">Starting…</div>
       </div>
       <div class="nc-stop-wrap">
@@ -259,8 +264,50 @@
     }
   }
 
+  // Visual action click ripple feedback (Video 4 requirement)
+  function showClickRipple(x, y) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    try {
+      if (!document.getElementById('techymind-ripple-styles')) {
+        const s = document.createElement('style');
+        s.id = 'techymind-ripple-styles';
+        s.textContent = `
+          @keyframes techymindRipple {
+            0% { transform: scale(0.2); opacity: 1; }
+            100% { transform: scale(2.4); opacity: 0; }
+          }
+        `;
+        (document.head || document.documentElement).appendChild(s);
+      }
+      const ripple = document.createElement('div');
+      ripple.className = 'techymind-click-ripple';
+      ripple.style.cssText = `
+        position: fixed;
+        left: ${x}px;
+        top: ${y}px;
+        width: 32px;
+        height: 32px;
+        margin-left: -16px;
+        margin-top: -16px;
+        border-radius: 50%;
+        border: 2px solid #e11d48;
+        background: rgba(225, 29, 72, 0.25);
+        box-shadow: 0 0 12px rgba(225, 29, 72, 0.6);
+        pointer-events: none;
+        z-index: 2147483647;
+        animation: techymindRipple 0.65s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+      `;
+      (document.body || document.documentElement).appendChild(ripple);
+      setTimeout(() => ripple.remove(), 700);
+    } catch {}
+  }
+
   // Background message listener
   chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type === 'SHOW_CLICK_RIPPLE' || msg.type === 'ACTION_CLICK_FEEDBACK') {
+      showClickRipple(msg.x, msg.y);
+      return;
+    }
 
     if (msg.type === 'STEP_UPDATE') {
       const s = msg.step;

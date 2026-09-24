@@ -50,6 +50,13 @@ export async function executeAction(tabId, action, agentState) {
       // only created after the visible "Recipients" chip is clicked).
       const result = await executeClickWithExpansion(tabId, action.selector || action.text || '', clickContext);
       if (!result?.ok) throw new Error(clickFailMessage(result));
+      try {
+        const rx = Number.isFinite(clickContext.x) ? clickContext.x : (result.rect ? result.rect.x + (result.rect.width || 0) / 2 : null);
+        const ry = Number.isFinite(clickContext.y) ? clickContext.y : (result.rect ? result.rect.y + (result.rect.height || 0) / 2 : null);
+        if (rx !== null && ry !== null) {
+          chrome.tabs.sendMessage(tabId, { type: 'SHOW_CLICK_RIPPLE', x: rx, y: ry }).catch(() => {});
+        }
+      } catch {}
       await sleep(750);   // let SPA state settle (playback toggles, navigations)
       let after = await inject(tabId, domPageFingerprint);
       // ignore media TIME drift for non-media actions — 750ms of video

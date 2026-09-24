@@ -21,8 +21,8 @@
 export const SANDBOX_GROUP_COLOR = 'blue';
 
 export function sandboxTitleFor(task) {
-  const base = String(task || 'Open Comet Task').replace(/\s+/g, ' ').trim();
-  return (base || 'Open Comet Task').substring(0, 24);
+  const base = String(task || 'TechyMind Task').replace(/\s+/g, ' ').trim();
+  return (base || 'TechyMind Task').substring(0, 24);
 }
 
 // Pure membership check — safe on legacy contexts that carry no taskTabIds

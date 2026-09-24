@@ -70,6 +70,23 @@ async function initSettings() {
     if ($('indianPiiToggle')) $('indianPiiToggle').checked = privacyConfig.maskIndianId !== false;
   } catch {}
 
+  // Voice & Audio
+  const voiceEngine = currentSettings.voiceInputEngine || 'webspeech';
+  if ($('voiceInputEngine')) {
+    $('voiceInputEngine').value = voiceEngine;
+    if ($('whisperKeyGroup')) {
+      $('whisperKeyGroup').style.display = voiceEngine === 'whisper' ? 'block' : 'none';
+    }
+    $('voiceInputEngine').addEventListener('change', (e) => {
+      if ($('whisperKeyGroup')) {
+        $('whisperKeyGroup').style.display = e.target.value === 'whisper' ? 'block' : 'none';
+      }
+    });
+  }
+  if ($('whisperApiKey')) $('whisperApiKey').value = currentSettings.whisperApiKey || '';
+  if ($('voiceOutputToggle')) $('voiceOutputToggle').checked = currentSettings.voiceOutputEnabled !== false;
+  if ($('voicePersonaSelect')) $('voicePersonaSelect').value = currentSettings.voicePersona || 'female';
+
   // Populate Skills Grid
   renderSkills();
 
@@ -508,9 +525,16 @@ async function saveSettings() {
       company: $('profCompany')?.value.trim() || '',
       address: $('profAddress')?.value.trim() || '',
     },
+    voiceInputEngine: $('voiceInputEngine')?.value || 'webspeech',
+    whisperApiKey: $('whisperApiKey')?.value.trim() || '',
+    voiceOutputEnabled: $('voiceOutputToggle')?.checked !== false,
+    voicePersona: $('voicePersonaSelect')?.value || 'female',
   };
 
-  await chrome.storage.local.set({ [STORAGE_KEYS.SETTINGS]: updated });
+  await chrome.storage.local.set({
+    [STORAGE_KEYS.SETTINGS]: updated,
+    voiceOutputEnabled: updated.voiceOutputEnabled,
+  });
   currentSettings = updated;
 
   // Persist Privacy Wall settings
@@ -553,23 +577,69 @@ $('exportConfigBtn')?.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-$('importConfigFile')?.addEventListener('change', e => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async event => {
-    try {
-      const parsed = JSON.parse(event.target.result);
-      currentSettings = { ...DEFAULT_SETTINGS, ...parsed };
-      await chrome.storage.local.set({ [STORAGE_KEYS.SETTINGS]: currentSettings });
-      await initSettings();
-      alert('Configuration imported successfully!');
-    } catch {
-      alert('Invalid configuration file.');
+// Modern Import Configuration with drag-and-drop & validation
+async function handleImportJsonContent(jsonStr) {
+  const fb = $('importFeedback');
+  if (!fb) return;
+  fb.style.display = 'block';
+  try {
+    const parsed = JSON.parse(jsonStr);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('JSON root must be a configuration object.');
     }
-  };
-  reader.readAsText(file);
-});
+    const knownKeys = ['provider', 'model', 'ollamaBaseUrl', 'exportFolder', 'profileData'];
+    const matchedKeys = knownKeys.filter(k => k in parsed);
+    if (matchedKeys.length === 0 && Object.keys(parsed).length < 2) {
+      throw new Error('Unrecognized TechyMind configuration schema.');
+    }
+
+    currentSettings = { ...DEFAULT_SETTINGS, ...parsed };
+    await chrome.storage.local.set({ [STORAGE_KEYS.SETTINGS]: currentSettings });
+    await initSettings();
+    fb.className = 'idz-feedback success';
+    fb.innerHTML = `✓ Configuration imported successfully (${Object.keys(parsed).length} properties restored).`;
+    setTimeout(() => { if (fb) fb.style.display = 'none'; }, 5000);
+  } catch (err) {
+    fb.className = 'idz-feedback error';
+    fb.innerHTML = `✕ Import failed: ${err.message || 'Invalid JSON file'}`;
+  }
+}
+
+const importDropZone = $('importDropZone');
+const importConfigFile = $('importConfigFile');
+
+if (importConfigFile) {
+  importConfigFile.addEventListener('change', e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      await handleImportJsonContent(ev.target.result);
+    };
+    reader.readAsText(file);
+  });
+}
+
+if (importDropZone) {
+  importDropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    importDropZone.classList.add('dragover');
+  });
+  importDropZone.addEventListener('dragleave', () => {
+    importDropZone.classList.remove('dragover');
+  });
+  importDropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    importDropZone.classList.remove('dragover');
+    const file = e.dataTransfer?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      await handleImportJsonContent(ev.target.result);
+    };
+    reader.readAsText(file);
+  });
+}
 
 // Diagnostics
 function logDiag(msg) {
